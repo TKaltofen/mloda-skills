@@ -2,16 +2,36 @@
 name: mloda-plugins
 description: >
   Guide an AI agent through building mloda (https://github.com/mloda-ai/mloda) plugins: FeatureGroup,
-  ComputeFramework, and Extender classes. Use once the `mloda` skill's registry check confirms no existing
-  plugin covers a requested feature, when writing or reviewing a FeatureGroup/ComputeFramework/Extender
-  implementation, or when packaging, sharing, or publishing a plugin to mloda-registry.
+  ComputeFramework, and Extender classes. Use to check the mloda-registry index for an existing plugin before
+  writing one, when writing or reviewing a FeatureGroup/ComputeFramework/Extender implementation, or when
+  packaging, sharing, or publishing a plugin to mloda-registry.
 license: MIT
 ---
 
 # mloda-plugins: Building mloda Plugins
 
-A plugin covering this may already exist; see the `mloda` skill's "Check what already exists" section before
-writing new code.
+## Check the registry index first
+
+Always do this before writing a plugin: it may already exist. mloda-registry publishes community plugins
+covering common `{col}__{op}` transforms (aggregation, window/scalar/frame aggregate, scalar/point arithmetic,
+rank, offset, percentile, binning, datetime, string ops, time bucketization, ffill, ema, sessionization,
+resample); see its [plugins table](https://github.com/mloda-ai/mloda-registry#plugins) for the full list. None
+of it ships with plain `pip install mloda`; install what you need (`pip install mloda-community` for all, or
+one package like `pip install "mloda-community-rank[pandas]"`), then confirm what's actually loaded:
+
+```python
+from mloda.user import PluginLoader
+from mloda.steward import get_feature_group_docs
+
+PluginLoader.all()
+for fg in get_feature_group_docs():
+    print(fg.name, fg.description)
+```
+
+An empty or unrelated result means it isn't installed yet, not that it doesn't exist; see
+[02-discover-plugins.md](https://github.com/mloda-ai/mloda-registry/blob/main/docs/guides/02-discover-plugins.md)
+for more on installed-vs-available. (The `mloda` skill covers the same check for requesting data instead of
+writing a plugin.)
 
 ## The three plugin types
 

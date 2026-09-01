@@ -4,14 +4,41 @@ description: >
   Give an AI agent declarative, deterministic data access via mloda (https://github.com/mloda-ai/mloda) - a
   Python plugin framework where the caller describes WHAT features or data it needs and mloda resolves HOW to
   compute or fetch them across a plugin graph, with built-in lineage back to source. Use when an agent needs to
-  request structured data or feature aggregations as a tool call instead of writing ad hoc fetch/transform code
-  (the "LLM Tool Function" pattern), when assembling a multi-source context window declaratively, when chaining
-  retrieval/validation/redaction steps for a RAG pipeline by feature name, or when checking whether an existing
-  mloda plugin already covers a requested feature (see the `mloda-plugins` skill for writing a new one).
+  check whether an existing mloda plugin already covers a requested feature (see the `mloda-plugins` skill for
+  writing a new one), before requesting structured data or feature aggregations as a tool call instead of
+  writing ad hoc fetch/transform code (the "LLM Tool Function" pattern), assembling a multi-source context
+  window declaratively, or chaining retrieval/validation/redaction steps for a RAG pipeline by feature name.
 license: MIT
 ---
 
 # mloda: Declarative Data Access for AI Agents
+
+## Check the registry index first
+
+Always do this before hand-writing a chain step. mloda-registry's community set covers common `{col}__{op}`
+transforms: aggregation, window/scalar/frame aggregate, scalar/point arithmetic, rank, offset, percentile,
+binning, datetime, string ops, time bucketization, ffill, ema, sessionization, resample. None of it ships with
+plain `pip install mloda`; install what you need, e.g. `pip install mloda-community` (all) or
+`pip install "mloda-community-rank[pandas]"` (one). See its
+[plugins table](https://github.com/mloda-ai/mloda-registry#plugins) for the full list and feature-name
+patterns.
+
+The table drifts, so once installed, confirm what's actually loaded rather than trusting a static list:
+
+```python
+from mloda.user import PluginLoader
+from mloda.steward import get_feature_group_docs
+
+PluginLoader.all()
+for fg in get_feature_group_docs():
+    print(fg.name, fg.description)
+```
+
+This only reflects installed packages: an empty or unrelated result means the plugin isn't installed yet, not
+that it doesn't exist.
+
+Nothing covering it? See the `mloda-plugins` skill for how to write a FeatureGroup, ComputeFramework, or
+Extender.
 
 ## Mental model
 
@@ -40,7 +67,7 @@ Roles map to modules: `mloda.provider` (define plugins), `mloda.user` (request d
 - A RAG pipeline needs chained steps (retrieve -> validate -> redact) expressed as a feature name or config
   instead of hand-wired code.
 - You need to check whether a requested feature is already covered by a plugin before writing new code (see
-  "Check what already exists" below); to write one instead, see the `mloda-plugins` skill.
+  "Check the registry index first" above); to write one instead, see the `mloda-plugins` skill.
 
 ## LLM Tool Function pattern
 
@@ -70,33 +97,6 @@ result = mloda.run_all(
 `api_data` inlines data under a label (e.g. `"SampleData"`); features are matched to columns by name. For
 data on disk, pass a `DataAccessCollection` instead (see mloda's
 [API Request docs](https://mloda-ai.github.io/mloda/chapter1/api-request/)).
-
-## Check what already exists
-
-A chain step you're about to hand-write may already be a plugin. mloda-registry's community set covers common
-`{col}__{op}` transforms: aggregation, window/scalar/frame aggregate, scalar/point arithmetic, rank, offset,
-percentile, binning, datetime, string ops, time bucketization, ffill, ema, sessionization, resample. None of
-it ships with plain `pip install mloda`; install what you need, e.g. `pip install mloda-community` (all) or
-`pip install "mloda-community-rank[pandas]"` (one). See its
-[plugins table](https://github.com/mloda-ai/mloda-registry#plugins) for the full list and feature-name
-patterns.
-
-The table drifts, so once installed, confirm what's actually loaded rather than trusting a static list:
-
-```python
-from mloda.user import PluginLoader
-from mloda.steward import get_feature_group_docs
-
-PluginLoader.all()
-for fg in get_feature_group_docs():
-    print(fg.name, fg.description)
-```
-
-This only reflects installed packages: an empty or unrelated result means the plugin isn't installed yet, not
-that it doesn't exist.
-
-Nothing covering it? See the `mloda-plugins` skill for how to write a FeatureGroup, ComputeFramework, or
-Extender.
 
 ## Feature-name chaining
 

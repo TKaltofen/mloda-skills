@@ -11,8 +11,8 @@ this repo, such as the [Inference Gateway skills catalog](https://github.com/inf
 
 | Skill | Path | Description |
 |-------|------|-------------|
-| [`mloda`](skills/mloda/SKILL.md) | `skills/mloda/SKILL.md` | Declarative data access for AI agents: the LLM Tool Function pattern, context-window assembly, RAG feature-name chaining, checking existing plugins, and the two-phase `prepare`/`run` API. |
-| [`mloda-plugins`](skills/mloda-plugins/SKILL.md) | `skills/mloda-plugins/SKILL.md` | Building mloda plugins: FeatureGroup, ComputeFramework, and Extender classes, and the journey from writing one to publishing it to mloda-registry. |
+| [`mloda`](skills/mloda/SKILL.md) | `skills/mloda/SKILL.md` | Declarative data access for AI agents: checking the mloda-registry index first, the LLM Tool Function pattern, context-window assembly, RAG feature-name chaining, and the two-phase `prepare`/`run` API. |
+| [`mloda-plugins`](skills/mloda-plugins/SKILL.md) | `skills/mloda-plugins/SKILL.md` | Building mloda plugins: checking the mloda-registry index first, then FeatureGroup, ComputeFramework, and Extender classes, and the journey from writing one to publishing it to mloda-registry. |
 
 ## License
 
