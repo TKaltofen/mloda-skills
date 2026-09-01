@@ -6,8 +6,8 @@ description: >
   compute or fetch them across a plugin graph, with built-in lineage back to source. Use when an agent needs to
   request structured data or feature aggregations as a tool call instead of writing ad hoc fetch/transform code
   (the "LLM Tool Function" pattern), when assembling a multi-source context window declaratively, when chaining
-  retrieval/validation/redaction steps for a RAG pipeline by feature name, or when writing/reviewing a mloda
-  FeatureGroup, ComputeFramework, or Extender plugin.
+  retrieval/validation/redaction steps for a RAG pipeline by feature name, or when checking whether an existing
+  mloda plugin already covers a requested feature (see the `mloda-plugins` skill for writing a new one).
 license: MIT
 ---
 
@@ -18,8 +18,7 @@ license: MIT
 mloda separates **WHAT** a caller needs from **HOW** it gets computed. A caller (human or LLM) requests
 features by name; mloda resolves dependencies across a plugin graph and executes them on a compute framework
 (`PandasDataFrame`, `PyArrowTable`, `PythonDictFramework`, ...), returning the result with lineage back to
-source. You never hand-wire the pipeline - you name the end result and mloda traces back through whatever
-chain of plugins produces it.
+source.
 
 Three plugin types, most work happens in the first:
 
@@ -40,8 +39,8 @@ Roles map to modules: `mloda.provider` (define plugins), `mloda.user` (request d
   before being handed to a model.
 - A RAG pipeline needs chained steps (retrieve -> validate -> redact) expressed as a feature name or config
   instead of hand-wired code.
-- You are writing or reviewing a FeatureGroup / ComputeFramework / Extender plugin, or planning one for a new
-  data source.
+- You need to check whether a requested feature is already covered by a plugin before writing new code (see
+  "Check what already exists" below); to write one instead, see the `mloda-plugins` skill.
 
 ## LLM Tool Function pattern
 
@@ -71,6 +70,33 @@ result = mloda.run_all(
 `api_data` inlines data under a label (e.g. `"SampleData"`); features are matched to columns by name. For
 data on disk, pass a `DataAccessCollection` instead (see mloda's
 [API Request docs](https://mloda-ai.github.io/mloda/chapter1/api-request/)).
+
+## Check what already exists
+
+A chain step you're about to hand-write may already be a plugin. mloda-registry's community set covers common
+`{col}__{op}` transforms: aggregation, window/scalar/frame aggregate, scalar/point arithmetic, rank, offset,
+percentile, binning, datetime, string ops, time bucketization, ffill, ema, sessionization, resample. None of
+it ships with plain `pip install mloda`; install what you need, e.g. `pip install mloda-community` (all) or
+`pip install "mloda-community-rank[pandas]"` (one). See its
+[plugins table](https://github.com/mloda-ai/mloda-registry#plugins) for the full list and feature-name
+patterns.
+
+The table drifts, so once installed, confirm what's actually loaded rather than trusting a static list:
+
+```python
+from mloda.user import PluginLoader
+from mloda.steward import get_feature_group_docs
+
+PluginLoader.all()
+for fg in get_feature_group_docs():
+    print(fg.name, fg.description)
+```
+
+This only reflects installed packages: an empty or unrelated result means the plugin isn't installed yet, not
+that it doesn't exist.
+
+Nothing covering it? See the `mloda-plugins` skill for how to write a FeatureGroup, ComputeFramework, or
+Extender.
 
 ## Feature-name chaining
 
